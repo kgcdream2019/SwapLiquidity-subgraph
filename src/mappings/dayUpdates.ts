@@ -14,18 +14,18 @@ export function updateUniswapDayData(event: EthereumEvent): void {
     let uniswapDayData = new UniswapDayData(dayID.toString())
     uniswapDayData.date = dayStartTimestamp
     uniswapDayData.dailyVolumeUSD = ZERO_BD
-    uniswapDayData.dailyVolumeETH = ZERO_BD
+    uniswapDayData.dailyVolumeBNB = ZERO_BD
     uniswapDayData.totalVolumeUSD = ZERO_BD
-    uniswapDayData.totalVolumeETH = ZERO_BD
+    uniswapDayData.totalVolumeBNB = ZERO_BD
     uniswapDayData.dailyVolumeUntracked = ZERO_BD
     uniswapDayData.totalLiquidityUSD = ZERO_BD
-    uniswapDayData.totalLiquidityETH = ZERO_BD
+    uniswapDayData.totalLiquidityBNB = ZERO_BD
     uniswapDayData.txCount = ZERO_BI
     uniswapDayData.save()
   }
   uniswapDayData = UniswapDayData.load(dayID.toString())
   uniswapDayData.totalLiquidityUSD = uniswap.totalLiquidityUSD
-  uniswapDayData.totalLiquidityETH = uniswap.totalLiquidityETH
+  uniswapDayData.totalLiquidityBNB = uniswap.totalLiquidityBNB
   uniswapDayData.txCount = uniswap.txCount
   uniswapDayData.save()
 }
@@ -112,21 +112,21 @@ export function updateTokenDayData(token: Token, event: EthereumEvent): void {
     let tokenDayData = new TokenDayData(tokenDayID)
     tokenDayData.date = dayStartTimestamp
     tokenDayData.token = token.id
-    tokenDayData.priceUSD = token.derivedETH.times(bundle.ethPrice)
+    tokenDayData.priceUSD = token.derivedBNB.times(bundle.bnbPrice)
     tokenDayData.dailyVolumeToken = ZERO_BD
-    tokenDayData.dailyVolumeETH = ZERO_BD
+    tokenDayData.dailyVolumeBNB = ZERO_BD
     tokenDayData.dailyVolumeUSD = ZERO_BD
     tokenDayData.dailyTxns = ZERO_BI
     tokenDayData.totalLiquidityToken = ZERO_BD
-    tokenDayData.totalLiquidityETH = ZERO_BD
+    tokenDayData.totalLiquidityBNB = ZERO_BD
     tokenDayData.totalLiquidityUSD = ZERO_BD
     tokenDayData.save()
   }
   tokenDayData = TokenDayData.load(tokenDayID)
-  tokenDayData.priceUSD = token.derivedETH.times(bundle.ethPrice)
+  tokenDayData.priceUSD = token.derivedBNB.times(bundle.bnbPrice)
   tokenDayData.totalLiquidityToken = token.totalLiquidity
-  tokenDayData.totalLiquidityETH = token.totalLiquidity.times(token.derivedETH as BigDecimal)
-  tokenDayData.totalLiquidityUSD = tokenDayData.totalLiquidityETH.times(bundle.ethPrice)
+  tokenDayData.totalLiquidityBNB = token.totalLiquidity.times(token.derivedBNB as BigDecimal)
+  tokenDayData.totalLiquidityUSD = tokenDayData.totalLiquidityBNB.times(bundle.bnbPrice)
   tokenDayData.dailyTxns = tokenDayData.dailyTxns.plus(ONE_BI)
   tokenDayData.save()
 
