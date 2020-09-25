@@ -4,9 +4,9 @@ import { BigInt, BigDecimal, store, Address } from '@graphprotocol/graph-ts'
 import {
   Pair,
   Token,
-  UniswapFactory,
+  BSCswapFactory,
   Transaction,
-  UniswapDayData,
+  BSCswapDayData,
   PairDayData,
   TokenDayData,
   Mint as MintEvent,
@@ -15,7 +15,7 @@ import {
   Bundle
 } from '../types/schema'
 import { Pair as PairContract, Mint, Burn, Swap, Transfer, Sync } from '../types/templates/Pair/Pair'
-import { updatePairDayData, updateTokenDayData, updateUniswapDayData, updatePairHourData } from './dayUpdates'
+import { updatePairDayData, updateTokenDayData, updateBSCswapDayData, updatePairHourData } from './dayUpdates'
 import { getBnbPriceInUSD, findBnbPerToken, getTrackedVolumeUSD, getTrackedLiquidityUSD } from './pricing'
 import {
   convertTokenToDecimal,
@@ -39,7 +39,7 @@ export function handleTransfer(event: Transfer): void {
     return
   }
 
-  let factory = UniswapFactory.load(FACTORY_ADDRESS)
+  let factory = BSCswapFactory.load(FACTORY_ADDRESS)
   let transactionHash = event.transaction.hash.toHexString()
 
   // user stats
@@ -60,8 +60,8 @@ export function handleTransfer(event: Transfer): void {
     transaction.blockNumber = event.block.number
     transaction.timestamp = event.block.timestamp
     transaction.mints = []
-    transaction.burns = []
     transaction.swaps = []
+    transaction.burns = []
   }
 
   // load mints from transaction
@@ -84,7 +84,6 @@ export function handleTransfer(event: Transfer): void {
       mint.to = to
       mint.liquidity = value
       mint.timestamp = transaction.timestamp
-      mint.transaction = transaction.id
       mint.save()
 
       // update mints in transaction
@@ -113,7 +112,6 @@ export function handleTransfer(event: Transfer): void {
     burn.to = event.params.to
     burn.sender = event.params.from
     burn.needsComplete = true
-    burn.transaction = transaction.id
     burn.save()
     burns.push(burn.id)
     transaction.burns = burns
@@ -142,7 +140,6 @@ export function handleTransfer(event: Transfer): void {
         burn.needsComplete = false
         burn.pair = pair.id
         burn.liquidity = value
-        burn.transaction = transaction.id
         burn.timestamp = transaction.timestamp
       }
     } else {
@@ -155,7 +152,6 @@ export function handleTransfer(event: Transfer): void {
       burn.needsComplete = false
       burn.pair = pair.id
       burn.liquidity = value
-      burn.transaction = transaction.id
       burn.timestamp = transaction.timestamp
     }
 
@@ -205,10 +201,10 @@ export function handleSync(event: Sync): void {
   let pair = Pair.load(event.address.toHex())
   let token0 = Token.load(pair.token0)
   let token1 = Token.load(pair.token1)
-  let uniswap = UniswapFactory.load(FACTORY_ADDRESS)
+  let bscswap = BSCswapFactory.load(FACTORY_ADDRESS)
 
   // reset factory liquidity by subtracting onluy tarcked liquidity
-  uniswap.totalLiquidityBNB = uniswap.totalLiquidityBNB.minus(pair.trackedReserveBNB as BigDecimal)
+  bscswap.totalLiquidityBNB = bscswap.totalLiquidityBNB.minus(pair.trackedReserveBNB as BigDecimal)
 
   // reset token total liquidity amounts
   token0.totalLiquidity = token0.totalLiquidity.minus(pair.reserve0)
@@ -256,8 +252,8 @@ export function handleSync(event: Sync): void {
   pair.reserveUSD = pair.reserveBNB.times(bundle.bnbPrice)
 
   // use tracked amounts globally
-  uniswap.totalLiquidityBNB = uniswap.totalLiquidityBNB.plus(trackedLiquidityBNB)
-  uniswap.totalLiquidityUSD = uniswap.totalLiquidityBNB.times(bundle.bnbPrice)
+  bscswap.totalLiquidityBNB = bscswap.totalLiquidityBNB.plus(trackedLiquidityBNB)
+  bscswap.totalLiquidityUSD = bscswap.totalLiquidityBNB.times(bundle.bnbPrice)
 
   // now correctly set liquidity amounts for each token
   token0.totalLiquidity = token0.totalLiquidity.plus(pair.reserve0)
@@ -265,7 +261,7 @@ export function handleSync(event: Sync): void {
 
   // save entities
   pair.save()
-  uniswap.save()
+  bscswap.save()
   token0.save()
   token1.save()
 }
@@ -276,7 +272,7 @@ export function handleMint(event: Mint): void {
   let mint = MintEvent.load(mints[mints.length - 1])
 
   let pair = Pair.load(event.address.toHex())
-  let uniswap = UniswapFactory.load(FACTORY_ADDRESS)
+  let bscswap = BSCswapFactory.load(FACTORY_ADDRESS)
 
   let token0 = Token.load(pair.token0)
   let token1 = Token.load(pair.token1)
@@ -298,13 +294,13 @@ export function handleMint(event: Mint): void {
 
   // update txn counts
   pair.txCount = pair.txCount.plus(ONE_BI)
-  uniswap.txCount = uniswap.txCount.plus(ONE_BI)
+  bscswap.txCount = bscswap.txCount.plus(ONE_BI)
 
   // save entities
   token0.save()
   token1.save()
   pair.save()
-  uniswap.save()
+  bscswap.save()
 
   mint.sender = event.params.sender
   mint.amount0 = token0Amount as BigDecimal
@@ -320,7 +316,7 @@ export function handleMint(event: Mint): void {
   // update day entities
   updatePairDayData(event)
   updatePairHourData(event)
-  updateUniswapDayData(event)
+  updateBSCswapDayData(event)
   updateTokenDayData(token0 as Token, event)
   updateTokenDayData(token1 as Token, event)
 }
@@ -331,7 +327,7 @@ export function handleBurn(event: Burn): void {
   let burn = BurnEvent.load(burns[burns.length - 1])
 
   let pair = Pair.load(event.address.toHex())
-  let uniswap = UniswapFactory.load(FACTORY_ADDRESS)
+  let bscswap = BSCswapFactory.load(FACTORY_ADDRESS)
 
   //update token info
   let token0 = Token.load(pair.token0)
@@ -351,14 +347,14 @@ export function handleBurn(event: Burn): void {
     .times(bundle.bnbPrice)
 
   // update txn counts
-  uniswap.txCount = uniswap.txCount.plus(ONE_BI)
+  bscswap.txCount = bscswap.txCount.plus(ONE_BI)
   pair.txCount = pair.txCount.plus(ONE_BI)
 
   // update global counter and save
   token0.save()
   token1.save()
   pair.save()
-  uniswap.save()
+  bscswap.save()
 
   // update burn
   // burn.sender = event.params.sender
@@ -376,7 +372,7 @@ export function handleBurn(event: Burn): void {
   // update day entities
   updatePairDayData(event)
   updatePairHourData(event)
-  updateUniswapDayData(event)
+  updateBSCswapDayData(event)
   updateTokenDayData(token0 as Token, event)
   updateTokenDayData(token1 as Token, event)
 }
@@ -394,10 +390,10 @@ export function handleSwap(event: Swap): void {
   let amount0Total = amount0Out.plus(amount0In)
   let amount1Total = amount1Out.plus(amount1In)
 
-  // BNB/USD prices
+  // Bnb/USD prices
   let bundle = Bundle.load('1')
 
-  // get total amounts of derived USD and BNB for tracking
+  // get total amounts of derived USD and Bnb for tracking
   let derivedAmountBNB = token1.derivedBNB
     .times(amount1Total)
     .plus(token0.derivedBNB.times(amount0Total))
@@ -437,17 +433,17 @@ export function handleSwap(event: Swap): void {
   pair.save()
 
   // update global values, only used tracked amounts for volume
-  let uniswap = UniswapFactory.load(FACTORY_ADDRESS)
-  uniswap.totalVolumeUSD = uniswap.totalVolumeUSD.plus(trackedAmountUSD)
-  uniswap.totalVolumeBNB = uniswap.totalVolumeBNB.plus(trackedAmountBNB)
-  uniswap.untrackedVolumeUSD = uniswap.untrackedVolumeUSD.plus(derivedAmountUSD)
-  uniswap.txCount = uniswap.txCount.plus(ONE_BI)
+  let bscswap = BSCswapFactory.load(FACTORY_ADDRESS)
+  bscswap.totalVolumeUSD = bscswap.totalVolumeUSD.plus(trackedAmountUSD)
+  bscswap.totalVolumeBNB = bscswap.totalVolumeBNB.plus(trackedAmountBNB)
+  bscswap.untrackedVolumeUSD = bscswap.untrackedVolumeUSD.plus(derivedAmountUSD)
+  bscswap.txCount = bscswap.txCount.plus(ONE_BI)
 
   // save entities
   pair.save()
   token0.save()
   token1.save()
-  uniswap.save()
+  bscswap.save()
 
   let transaction = Transaction.load(event.transaction.hash.toHexString())
   if (transaction === null) {
@@ -470,7 +466,6 @@ export function handleSwap(event: Swap): void {
   // update swap event
   swap.pair = pair.id
   swap.timestamp = transaction.timestamp
-  swap.transaction = transaction.id
   swap.sender = event.params.sender
   swap.amount0In = amount0In
   swap.amount1In = amount1In
@@ -490,7 +485,7 @@ export function handleSwap(event: Swap): void {
   // update day entities
   updatePairDayData(event)
   updatePairHourData(event)
-  updateUniswapDayData(event)
+  updateBSCswapDayData(event)
   updateTokenDayData(token0 as Token, event)
   updateTokenDayData(token1 as Token, event)
 
@@ -510,11 +505,11 @@ export function handleSwap(event: Swap): void {
     .concat(BigInt.fromI32(hourID).toString())
 
   // swap specific updating
-  let uniswapDayData = UniswapDayData.load(dayID.toString())
-  uniswapDayData.dailyVolumeUSD = uniswapDayData.dailyVolumeUSD.plus(trackedAmountUSD)
-  uniswapDayData.dailyVolumeBNB = uniswapDayData.dailyVolumeBNB.plus(trackedAmountBNB)
-  uniswapDayData.dailyVolumeUntracked = uniswapDayData.dailyVolumeUntracked.plus(derivedAmountUSD)
-  uniswapDayData.save()
+  let bscswapDayData = BSCswapDayData.load(dayID.toString())
+  bscswapDayData.dailyVolumeUSD = bscswapDayData.dailyVolumeUSD.plus(trackedAmountUSD)
+  bscswapDayData.dailyVolumeBNB = bscswapDayData.dailyVolumeBNB.plus(trackedAmountBNB)
+  bscswapDayData.dailyVolumeUntracked = bscswapDayData.dailyVolumeUntracked.plus(derivedAmountUSD)
+  bscswapDayData.save()
 
   // swap specific updating for pair
   let pairDayData = PairDayData.load(dayPairID)

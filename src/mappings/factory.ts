@@ -1,6 +1,6 @@
 /* eslint-disable prefer-const */
 import { log } from '@graphprotocol/graph-ts'
-import { UniswapFactory, Pair, Token, Bundle } from '../types/schema'
+import { BSCswapFactory, Pair, Token, Bundle } from '../types/schema'
 import { PairCreated } from '../types/Factory/Factory'
 import { Pair as PairTemplate } from '../types/templates'
 import {
@@ -15,9 +15,9 @@ import {
 
 export function handleNewPair(event: PairCreated): void {
   // load factory (create if first exchange)
-  let factory = UniswapFactory.load(FACTORY_ADDRESS)
+  let factory = BSCswapFactory.load(FACTORY_ADDRESS)
   if (factory == null) {
-    factory = new UniswapFactory(FACTORY_ADDRESS)
+    factory = new BSCswapFactory(FACTORY_ADDRESS)
     factory.pairCount = 0
     factory.totalVolumeBNB = ZERO_BD
     factory.totalLiquidityBNB = ZERO_BD
@@ -25,6 +25,7 @@ export function handleNewPair(event: PairCreated): void {
     factory.untrackedVolumeUSD = ZERO_BD
     factory.totalLiquidityUSD = ZERO_BD
     factory.txCount = ZERO_BI
+    factory.mostLiquidTokens = []
 
     // create new bundle
     let bundle = new Bundle('1')
@@ -58,6 +59,7 @@ export function handleNewPair(event: PairCreated): void {
     token0.untrackedVolumeUSD = ZERO_BD
     token0.totalLiquidity = ZERO_BD
     // token0.allPairs = []
+    token0.mostLiquidPairs = []
     token0.txCount = ZERO_BI
   }
 
@@ -80,6 +82,7 @@ export function handleNewPair(event: PairCreated): void {
     token1.untrackedVolumeUSD = ZERO_BD
     token1.totalLiquidity = ZERO_BD
     // token1.allPairs = []
+    token1.mostLiquidPairs = []
     token1.txCount = ZERO_BI
   }
 

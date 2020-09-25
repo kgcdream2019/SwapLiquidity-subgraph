@@ -1,4 +1,4 @@
-type UniswapFactory @entity {
+type BSCswapFactory @entity {
   # factory address
   id: ID!
 
@@ -18,6 +18,9 @@ type UniswapFactory @entity {
 
   # transactions
   txCount: BigInt!
+
+  # as reference for new day datas
+  mostLiquidTokens: [TokenDayData!]!
 }
 
 type Token @entity {
@@ -45,6 +48,9 @@ type Token @entity {
 
   # derived prices
   derivedBNB: BigDecimal
+
+  # saved for historical refernce of most liquid pairs
+  mostLiquidPairs: [PairDayData]!
 }
 
 type Pair @entity {
@@ -92,13 +98,13 @@ type LiquidityPosition @entity {
   user: User!
   pair: Pair!
   liquidityTokenBalance: BigDecimal!
-  historicalSnapshots: [LiquidityPositionSnapshot]! @derivedFrom(field: "liquidityPosition")
+  historicalSnapshots: [LiquidityPositionSnapshot]!
 }
 
 # saved over time for return calculations, gets created and never updated
 type LiquidityPositionSnapshot @entity {
   id: ID!
-  liquidityPosition: LiquidityPosition!
+  liquidityPosition: LiquidityPosition! @derivedFrom(field: "historicalSnapshots")
   timestamp: Int! # saved for fast historical lookups
   block: Int! # saved for fast historical lookups
   user: User! # reference to user
@@ -116,8 +122,6 @@ type Transaction @entity {
   id: ID! # txn hash
   blockNumber: BigInt!
   timestamp: BigInt!
-  # This is not the reverse of Mint.transaction; it is only used to
-  # track incomplete mints (similar for burns and swaps)
   mints: [Mint]!
   burns: [Burn]!
   swaps: [Swap]!
@@ -126,7 +130,7 @@ type Transaction @entity {
 type Mint @entity {
   # transaction hash + "-" + index in mints Transaction array
   id: ID!
-  transaction: Transaction!
+  transaction: Transaction! @derivedFrom(field: "mints")
   timestamp: BigInt! # need this to pull recent txns for specific token or pair
   pair: Pair!
 
@@ -150,7 +154,7 @@ type Mint @entity {
 type Burn @entity {
   # transaction hash + "-" + index in mints Transaction array
   id: ID!
-  transaction: Transaction!
+  transaction: Transaction! @derivedFrom(field: "burns")
   timestamp: BigInt! # need this to pull recent txns for specific token or pair
   pair: Pair!
 
@@ -177,7 +181,7 @@ type Burn @entity {
 type Swap @entity {
   # transaction hash + "-" + index in swaps Transaction array
   id: ID!
-  transaction: Transaction!
+  transaction: Transaction! @derivedFrom(field: "swaps")
   timestamp: BigInt! # need this to pull recent txns for specific token or pair
   pair: Pair!
 
@@ -200,8 +204,8 @@ type Bundle @entity {
   bnbPrice: BigDecimal! # price of BNB usd
 }
 
-# Data accumulated and condensed into day stats for all of Uniswap
-type UniswapDayData @entity {
+# Data accumulated and condensed into day stats for all of BSCswap
+type BSCswapDayData @entity {
   id: ID! # timestamp rounded to current day by dividing by 86400
   date: Int!
 
@@ -213,6 +217,10 @@ type UniswapDayData @entity {
   totalLiquidityBNB: BigDecimal!
   totalVolumeUSD: BigDecimal! # Accumulate at each trade, not just calculated off whatever totalVolume is. making it more accurate as it is a live conversion
   totalLiquidityUSD: BigDecimal!
+
+  # daily top tokens in liquidity
+  maxStored: Int
+  mostLiquidTokens: [TokenDayData!]!
 
   txCount: BigInt!
 }
@@ -279,4 +287,8 @@ type TokenDayData @entity {
 
   # price stats
   priceUSD: BigDecimal!
+
+  # top pairs that this token is in by liquidity
+  maxStored: Int!
+  mostLiquidPairs: [PairDayData!]!
 }
