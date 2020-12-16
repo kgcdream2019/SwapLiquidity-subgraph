@@ -80,10 +80,12 @@ export function handleTransfer(event: Transfer): void {
           .concat('-')
           .concat(BigInt.fromI32(mints.length).toString())
       )
+      mint.transaction = transaction.id
       mint.pair = pair.id
       mint.to = to
       mint.liquidity = value
       mint.timestamp = transaction.timestamp
+      mint.transaction = transaction.id
       mint.save()
 
       // update mints in transaction
@@ -106,12 +108,14 @@ export function handleTransfer(event: Transfer): void {
         .concat('-')
         .concat(BigInt.fromI32(burns.length).toString())
     )
+    burn.transaction = transaction.id
     burn.pair = pair.id
     burn.liquidity = value
     burn.timestamp = transaction.timestamp
     burn.to = event.params.to
     burn.sender = event.params.from
     burn.needsComplete = true
+    burn.transaction = transaction.id
     burn.save()
     burns.push(burn.id)
     transaction.burns = burns
@@ -137,9 +141,11 @@ export function handleTransfer(event: Transfer): void {
             .concat('-')
             .concat(BigInt.fromI32(burns.length).toString())
         )
+        burn.transaction = transaction.id
         burn.needsComplete = false
         burn.pair = pair.id
         burn.liquidity = value
+        burn.transaction = transaction.id
         burn.timestamp = transaction.timestamp
       }
     } else {
@@ -149,9 +155,11 @@ export function handleTransfer(event: Transfer): void {
           .concat('-')
           .concat(BigInt.fromI32(burns.length).toString())
       )
+      burn.transaction = transaction.id
       burn.needsComplete = false
       burn.pair = pair.id
       burn.liquidity = value
+      burn.transaction = transaction.id
       burn.timestamp = transaction.timestamp
     }
 
@@ -323,6 +331,12 @@ export function handleMint(event: Mint): void {
 
 export function handleBurn(event: Burn): void {
   let transaction = Transaction.load(event.transaction.hash.toHexString())
+
+  // safety check
+  if (transaction === null) {
+    return
+  }
+
   let burns = transaction.burns
   let burn = BurnEvent.load(burns[burns.length - 1])
 
@@ -464,14 +478,17 @@ export function handleSwap(event: Swap): void {
   )
 
   // update swap event
+  swap.transaction = transaction.id
   swap.pair = pair.id
   swap.timestamp = transaction.timestamp
+  swap.transaction = transaction.id
   swap.sender = event.params.sender
   swap.amount0In = amount0In
   swap.amount1In = amount1In
   swap.amount0Out = amount0Out
   swap.amount1Out = amount1Out
   swap.to = event.params.to
+  swap.from = event.transaction.from
   swap.logIndex = event.logIndex
   // use the tracked amount if we have it
   swap.amountUSD = trackedAmountUSD === ZERO_BD ? derivedAmountUSD : trackedAmountUSD
