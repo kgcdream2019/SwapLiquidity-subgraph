@@ -80,12 +80,12 @@ export function handleTransfer(event: Transfer): void {
           .concat('-')
           .concat(BigInt.fromI32(mints.length).toString())
       )
-      // mint.transaction = transaction.id
+      mint.transaction = transaction.id
       mint.pair = pair.id
       mint.to = to
       mint.liquidity = value
       mint.timestamp = transaction.timestamp
-      // mint.transaction = transaction.id
+      mint.transaction = transaction.id
       mint.save()
 
       // update mints in transaction
@@ -108,14 +108,14 @@ export function handleTransfer(event: Transfer): void {
         .concat('-')
         .concat(BigInt.fromI32(burns.length).toString())
     )
-    // burn.transaction = transaction.id
+    burn.transaction = transaction.id
     burn.pair = pair.id
     burn.liquidity = value
     burn.timestamp = transaction.timestamp
     burn.to = event.params.to
     burn.sender = event.params.from
     burn.needsComplete = true
-    // burn.transaction = transaction.id
+    burn.transaction = transaction.id
     burn.save()
     burns.push(burn.id)
     transaction.burns = burns
@@ -141,11 +141,11 @@ export function handleTransfer(event: Transfer): void {
             .concat('-')
             .concat(BigInt.fromI32(burns.length).toString())
         )
-        // burn.transaction = transaction.id
+        burn.transaction = transaction.id
         burn.needsComplete = false
         burn.pair = pair.id
         burn.liquidity = value
-        // burn.transaction = transaction.id
+        burn.transaction = transaction.id
         burn.timestamp = transaction.timestamp
       }
     } else {
@@ -155,11 +155,11 @@ export function handleTransfer(event: Transfer): void {
           .concat('-')
           .concat(BigInt.fromI32(burns.length).toString())
       )
-      // burn.transaction = transaction.id
+      burn.transaction = transaction.id
       burn.needsComplete = false
       burn.pair = pair.id
       burn.liquidity = value
-      // burn.transaction = transaction.id
+      burn.transaction = transaction.id
       burn.timestamp = transaction.timestamp
     }
 
@@ -467,7 +467,6 @@ export function handleSwap(event: Swap): void {
     transaction.mints = []
     transaction.swaps = []
     transaction.burns = []
-    transaction.save()
   }
   let swaps = transaction.swaps
   let swap = new SwapEvent(
@@ -478,10 +477,10 @@ export function handleSwap(event: Swap): void {
   )
 
   // update swap event
-  // swap.transaction = transaction.id
+  swap.transaction = transaction.id
   swap.pair = pair.id
   swap.timestamp = transaction.timestamp
-  // swap.transaction = transaction.id
+  swap.transaction = transaction.id
   swap.sender = event.params.sender
   swap.amount0In = amount0In
   swap.amount1In = amount1In
