@@ -122,7 +122,7 @@ export function updateTokenDayData(token: Token, event: EthereumEvent): TokenDay
     tokenDayData.maxStored = maxPairDayDatas
     tokenDayData.mostLiquidPairs = token.mostLiquidPairs
   }
-  tokenDayData.priceUSD = token.derivedETH.times(bundle.ethPrice)
+  tokenDayData.priceUSD = token.derivedBNB.times(bundle.bnbPrice)
   tokenDayData.totalLiquidityToken = token.totalLiquidity
   tokenDayData.totalLiquidityBNB = token.totalLiquidity.times(token.derivedBNB as BigDecimal)
   tokenDayData.totalLiquidityUSD = tokenDayData.totalLiquidityBNB.times(bundle.bnbPrice)
