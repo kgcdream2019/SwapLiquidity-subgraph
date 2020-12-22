@@ -14,7 +14,7 @@ export function updateBSCswapDayData(event: EthereumEvent):BSCswapDayData {
   let dayID = timestamp / 86400
   let dayStartTimestamp = dayID * 86400
   let bscswapDayData = BSCswapDayData.load(dayID.toString())
-  if (uniswapDayData === null) {
+  if (bscswapDayData === null) {
     let bscswapDayData = new BSCswapDayData(dayID.toString())
     bscswapDayData.date = dayStartTimestamp
     bscswapDayData.dailyVolumeUSD = ZERO_BD
