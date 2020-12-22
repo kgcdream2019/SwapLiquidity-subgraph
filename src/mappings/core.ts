@@ -192,14 +192,16 @@ export function handleTransfer(event: Transfer): void {
     let fromUserLiquidityPosition = createLiquidityPosition(event.address, from)
     fromUserLiquidityPosition.liquidityTokenBalance = fromUserLiquidityPosition.liquidityTokenBalance.minus(value)
     fromUserLiquidityPosition.save()
-    createLiquiditySnapshot(fromUserLiquidityPosition, event)
+    if (event.params.to.toHexString() != ADDRESS_ZERO && to.toHexString() != pair.id) 
+      createLiquiditySnapshot(fromUserLiquidityPosition, event)
   }
 
   if (event.params.to.toHexString() != ADDRESS_ZERO && to.toHexString() != pair.id) {
     let toUserLiquidityPosition = createLiquidityPosition(event.address, to)
     toUserLiquidityPosition.liquidityTokenBalance = toUserLiquidityPosition.liquidityTokenBalance.plus(value)
     toUserLiquidityPosition.save()
-    createLiquiditySnapshot(toUserLiquidityPosition, event)
+    if (from.toHexString() != ADDRESS_ZERO && from.toHexString() != pair.id)
+      createLiquiditySnapshot(toUserLiquidityPosition, event)
   }
 
   transaction.save()
