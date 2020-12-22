@@ -506,10 +506,10 @@ export function handleSwap(event: Swap): void {
   let token1DayData = updateTokenDayData(token1 as Token, event)
 
   // swap specific updating
-  uniswapDayData.dailyVolumeUSD = uniswapDayData.dailyVolumeUSD.plus(trackedAmountUSD)
-  uniswapDayData.dailyVolumeETH = uniswapDayData.dailyVolumeETH.plus(trackedAmountETH)
-  uniswapDayData.dailyVolumeUntracked = uniswapDayData.dailyVolumeUntracked.plus(derivedAmountUSD)
-  uniswapDayData.save()
+  bscswapDayData.dailyVolumeUSD = bscswapDayData.dailyVolumeUSD.plus(trackedAmountUSD)
+  bscswapDayData.dailyVolumeBNB = bscswapDayData.dailyVolumeBNB.plus(trackedAmountBNB)
+  bscswapDayData.dailyVolumeUntracked = bscswapDayData.dailyVolumeUntracked.plus(derivedAmountUSD)
+  bscswapDayData.save()
 
   // swap specific updating for pair
   pairDayData.dailyVolumeToken0 = pairDayData.dailyVolumeToken0.plus(amount0Total)
