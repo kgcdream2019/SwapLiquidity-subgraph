@@ -46,7 +46,11 @@ let WHITELIST: string[] = [
   '0xe9e7cea3dedca5984780bafc599bd69add087d56', // BUSD
   '0x55d398326f99059ff775485246999027b3197955' // USDT
 ]
+// minimum liquidity required to count towards tracked volume for pairs with small # of Lps
+let MINIMUM_USD_THRESHOLD_NEW_PAIRS = BigDecimal.fromString('400000')
 
+// minimum liquidity for price to get tracked
+let MINIMUM_LIQUIDITY_THRESHOLD_BNB = BigDecimal.fromString('2')
 /**
  * Search through graph to find derived BNB per token.
  * @todo update to be derived BNB (add stablecoin estimates)
