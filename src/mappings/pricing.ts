@@ -44,7 +44,9 @@ let WHITELIST: string[] = [
   '0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c', // WBNB
   '0x1af3f329e8be154074d8769d1ffa4ee058b1dbc3', // DAI
   '0xe9e7cea3dedca5984780bafc599bd69add087d56', // BUSD
-  '0x55d398326f99059ff775485246999027b3197955' // USDT
+  '0x55d398326f99059ff775485246999027b3197955', // USDT
+  '0x32dffc3fe8e3ef3571bf8a72c0d0015c5373f41d', // JULb
+  '0xc5137e8e017799e71a65e0cfe3f340d719af17d3'  // ETHb
 ]
 // minimum liquidity required to count towards tracked volume for pairs with small # of Lps
 let MINIMUM_USD_THRESHOLD_NEW_PAIRS = BigDecimal.fromString('400000')
