@@ -46,7 +46,17 @@ let WHITELIST: string[] = [
   '0xe9e7cea3dedca5984780bafc599bd69add087d56', // BUSD
   '0x55d398326f99059ff775485246999027b3197955', // USDT
   '0x32dffc3fe8e3ef3571bf8a72c0d0015c5373f41d', // JULb
-  '0xc5137e8e017799e71a65e0cfe3f340d719af17d3'  // ETHb
+  '0xc5137e8e017799e71a65e0cfe3f340d719af17d3', // ETHb
+  '0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c', //BTCB
+  '0x5a41f637c3f7553dba6ddc2d3ca92641096577ea', //JULd
+  '0xe40255c5d7fa7ceec5120408c78c787cecb4cfdb', //SWGb
+  '0xe49ed1b44117bb7379c1506cf5815ae33089e1a7', //OBRb
+  '0x7083609fce4d1d8dc0c979aab8c869ea2c873402', //DOT
+  '0x3f515f0a8e93f2e2f891ceeb3db4e62e202d7110', //VIDT
+  '0x4b0f1812e5df2a09796481ff14017e6005508003', //TWT
+  '0xc1d99537392084cc02d3f52386729b79d01035ce'  //SBS
+
+
 ]
 // minimum liquidity required to count towards tracked volume for pairs with small # of Lps
 let MINIMUM_USD_THRESHOLD_NEW_PAIRS = BigDecimal.fromString('400000')
