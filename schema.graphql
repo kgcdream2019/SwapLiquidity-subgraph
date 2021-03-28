@@ -7,14 +7,14 @@ type BSCswapFactory @entity {
 
   # total volume
   totalVolumeUSD: BigDecimal!
-  totalVolumeBNB: BigDecimal!
+  totalVolumeHT: BigDecimal!
 
   # untracked values - less confident USD scores
   untrackedVolumeUSD: BigDecimal!
 
   # total liquidity
   totalLiquidityUSD: BigDecimal!
-  totalLiquidityBNB: BigDecimal!
+  totalLiquidityHT: BigDecimal!
 
   # transactions
   txCount: BigInt!
@@ -47,7 +47,7 @@ type Token @entity {
   totalLiquidity: BigDecimal!
 
   # derived prices
-  derivedBNB: BigDecimal
+  derivedHT: BigDecimal
 
   # saved for historical refernce of most liquid pairs
   mostLiquidPairs: [PairDayData]!
@@ -65,9 +65,9 @@ type Pair @entity {
   totalSupply: BigDecimal!
 
   # derived liquidity
-  reserveBNB: BigDecimal!
+  reserveHT: BigDecimal!
   reserveUSD: BigDecimal!
-  trackedReserveBNB: BigDecimal! # used for separating per pair reserves and global
+  trackedReserveHT: BigDecimal! # used for separating per pair reserves and global
   # Price in terms of the asset pair
   token0Price: BigDecimal!
   token1Price: BigDecimal!
@@ -178,7 +178,7 @@ type Burn @entity {
   # derived amount based on available prices of tokens
   amountUSD: BigDecimal
 
-  # mark uncomplete in BNB case
+  # mark uncomplete in HT case
   needsComplete: Boolean!
 
   # optional fee fields, if a Transfer event is fired in _mintFee
@@ -210,7 +210,7 @@ type Swap @entity {
 # stores for USD calculations
 type Bundle @entity {
   id: ID!
-  bnbPrice: BigDecimal! # price of BNB usd
+  htPrice: BigDecimal! # price of HT usd
 }
 
 # Data accumulated and condensed into day stats for all of BSCswap
@@ -218,16 +218,16 @@ type BSCswapDayData @entity {
   id: ID! # timestamp rounded to current day by dividing by 86400
   date: Int!
 
-  dailyVolumeBNB: BigDecimal!
-  dailyVolumeUSD: BigDecimal!
-  dailyVolumeUntracked: BigDecimal!
+  usdclyVolumeHT: BigDecimal!
+  usdclyVolumeUSD: BigDecimal!
+  usdclyVolumeUntracked: BigDecimal!
 
-  totalVolumeBNB: BigDecimal!
-  totalLiquidityBNB: BigDecimal!
+  totalVolumeHT: BigDecimal!
+  totalLiquidityHT: BigDecimal!
   totalVolumeUSD: BigDecimal! # Accumulate at each trade, not just calculated off whatever totalVolume is. making it more accurate as it is a live conversion
   totalLiquidityUSD: BigDecimal!
 
-  # daily top tokens in liquidity
+  # usdcly top tokens in liquidity
   maxStored: Int
   mostLiquidTokens: [TokenDayData!]!
 
@@ -272,10 +272,10 @@ type PairDayData @entity {
   reserveUSD: BigDecimal!
 
   # volume stats
-  dailyVolumeToken0: BigDecimal!
-  dailyVolumeToken1: BigDecimal!
-  dailyVolumeUSD: BigDecimal!
-  dailyTxns: BigInt!
+  usdclyVolumeToken0: BigDecimal!
+  usdclyVolumeToken1: BigDecimal!
+  usdclyVolumeUSD: BigDecimal!
+  usdclyTxns: BigInt!
 }
 
 type TokenDayData @entity {
@@ -284,14 +284,14 @@ type TokenDayData @entity {
   token: Token!
 
   # volume stats
-  dailyVolumeToken: BigDecimal!
-  dailyVolumeBNB: BigDecimal!
-  dailyVolumeUSD: BigDecimal!
-  dailyTxns: BigInt!
+  usdclyVolumeToken: BigDecimal!
+  usdclyVolumeHT: BigDecimal!
+  usdclyVolumeUSD: BigDecimal!
+  usdclyTxns: BigInt!
 
   # liquidity stats
   totalLiquidityToken: BigDecimal!
-  totalLiquidityBNB: BigDecimal!
+  totalLiquidityHT: BigDecimal!
   totalLiquidityUSD: BigDecimal!
 
   # price stats

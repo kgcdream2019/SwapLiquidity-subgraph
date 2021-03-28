@@ -22,7 +22,7 @@ Below are a few ways to show how to query the SwapLiquidity-subgraph for data. T
 
 #### BSCswapFactory
 
-Contains data across all of BSCswap. This entity tracks important things like total liquidity (in BNB and USD, see below), all time volume, transaction count, number of pairs and more.
+Contains data across all of BSCswap. This entity tracks important things like total liquidity (in HT and USD, see below), all time volume, transaction count, number of pairs and more.
 
 #### Token
 

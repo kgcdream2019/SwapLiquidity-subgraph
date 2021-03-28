@@ -29,8 +29,8 @@ export function bigDecimalExp18(): BigDecimal {
   return BigDecimal.fromString('1000000000000000000')
 }
 
-export function convertBnbToDecimal(bnb: BigInt): BigDecimal {
-  return bnb.toBigDecimal().div(exponentToBigDecimal(18))
+export function convertHtToDecimal(ht: BigInt): BigDecimal {
+  return ht.toBigDecimal().div(exponentToBigDecimal(18))
 }
 
 export function convertTokenToDecimal(tokenAmount: BigInt, exchangeDecimals: BigInt): BigDecimal {
@@ -49,7 +49,7 @@ export function equalToZero(value: BigDecimal): boolean {
   return false
 }
 
-export function isNullBnbValue(value: string): boolean {
+export function isNullHtValue(value: string): boolean {
   return value == '0x0000000000000000000000000000000000000000000000000000000000000001'
 }
 
@@ -69,7 +69,7 @@ export function fetchTokenSymbol(tokenAddress: Address): string {
     let symbolResultBytes = contractSymbolBytes.try_symbol()
     if (!symbolResultBytes.reverted) {
       // for broken pairs that have no symbol function exposed
-      if (!isNullBnbValue(symbolResultBytes.value.toHexString())) {
+      if (!isNullHtValue(symbolResultBytes.value.toHexString())) {
         symbolValue = symbolResultBytes.value.toString()
       }
     }
@@ -92,7 +92,7 @@ export function fetchTokenName(tokenAddress: Address): string {
     let nameResultBytes = contractNameBytes.try_name()
     if (!nameResultBytes.reverted) {
       // for broken exchanges that have no name function exposed
-      if (!isNullBnbValue(nameResultBytes.value.toHexString())) {
+      if (!isNullHtValue(nameResultBytes.value.toHexString())) {
         nameValue = nameResultBytes.value.toString()
       }
     }
@@ -167,8 +167,8 @@ export function createLiquiditySnapshot(position: LiquidityPosition, event: Ethe
   snapshot.block = event.block.number.toI32()
   snapshot.user = position.user
   snapshot.pair = position.pair
-  snapshot.token0PriceUSD = token0.derivedBNB.times(bundle.bnbPrice)
-  snapshot.token1PriceUSD = token1.derivedBNB.times(bundle.bnbPrice)
+  snapshot.token0PriceUSD = token0.derivedHT.times(bundle.htPrice)
+  snapshot.token1PriceUSD = token1.derivedHT.times(bundle.htPrice)
   snapshot.reserve0 = pair.reserve0
   snapshot.reserve1 = pair.reserve1
   snapshot.reserveUSD = pair.reserveUSD

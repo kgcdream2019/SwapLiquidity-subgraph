@@ -19,8 +19,8 @@ export function handleNewPair(event: PairCreated): void {
   if (factory == null) {
     factory = new BSCswapFactory(FACTORY_ADDRESS)
     factory.pairCount = 0
-    factory.totalVolumeBNB = ZERO_BD
-    factory.totalLiquidityBNB = ZERO_BD
+    factory.totalVolumeHT = ZERO_BD
+    factory.totalLiquidityHT = ZERO_BD
     factory.totalVolumeUSD = ZERO_BD
     factory.untrackedVolumeUSD = ZERO_BD
     factory.totalLiquidityUSD = ZERO_BD
@@ -29,7 +29,7 @@ export function handleNewPair(event: PairCreated): void {
 
     // create new bundle
     let bundle = new Bundle('1')
-    bundle.bnbPrice = ZERO_BD
+    bundle.htPrice = ZERO_BD
     bundle.save()
   }
   factory.pairCount = factory.pairCount + 1
@@ -53,7 +53,7 @@ export function handleNewPair(event: PairCreated): void {
     }
 
     token0.decimals = decimals
-    token0.derivedBNB = ZERO_BD
+    token0.derivedHT = ZERO_BD
     token0.tradeVolume = ZERO_BD
     token0.tradeVolumeUSD = ZERO_BD
     token0.untrackedVolumeUSD = ZERO_BD
@@ -76,7 +76,7 @@ export function handleNewPair(event: PairCreated): void {
       return
     }
     token1.decimals = decimals
-    token1.derivedBNB = ZERO_BD
+    token1.derivedHT = ZERO_BD
     token1.tradeVolume = ZERO_BD
     token1.tradeVolumeUSD = ZERO_BD
     token1.untrackedVolumeUSD = ZERO_BD
@@ -95,8 +95,8 @@ export function handleNewPair(event: PairCreated): void {
   pair.txCount = ZERO_BI
   pair.reserve0 = ZERO_BD
   pair.reserve1 = ZERO_BD
-  pair.trackedReserveBNB = ZERO_BD
-  pair.reserveBNB = ZERO_BD
+  pair.trackedReserveHT = ZERO_BD
+  pair.reserveHT = ZERO_BD
   pair.reserveUSD = ZERO_BD
   pair.totalSupply = ZERO_BD
   pair.volumeToken0 = ZERO_BD
