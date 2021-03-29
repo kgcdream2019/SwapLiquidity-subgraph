@@ -1,7 +1,7 @@
 import { PairHourData } from './../types/schema'
 /* eslint-disable prefer-const */
 import { BigInt, BigDecimal, EthereumEvent } from '@graphprotocol/graph-ts'
-import { Pair, Bundle, Token, BSCswapFactory, BSCswapDayData, PairDayData, TokenDayData } from '../types/schema'
+import { Pair, Bundle, Token, BSCswapHFactory, BSCswapDayData, PairDayData, TokenDayData } from '../types/schema'
 import { ONE_BI, ZERO_BD, ZERO_BI, FACTORY_ADDRESS } from './helpers'
 
 // max number of entities to store
@@ -9,7 +9,7 @@ const maxTokenDayDatas = 10
 const maxPairDayDatas = 10
 
 export function updateBSCswapDayData(event: EthereumEvent):BSCswapDayData {
-  let bscswap = BSCswapFactory.load(FACTORY_ADDRESS)
+  let bscswap = BSCswapHFactory.load(FACTORY_ADDRESS)
   let timestamp = event.block.timestamp.toI32()
   let dayID = timestamp / 86400
   let dayStartTimestamp = dayID * 86400
@@ -17,11 +17,11 @@ export function updateBSCswapDayData(event: EthereumEvent):BSCswapDayData {
   if (bscswapDayData === null) {
     let bscswapDayData = new BSCswapDayData(dayID.toString())
     bscswapDayData.date = dayStartTimestamp
-    bscswapDayData.usdclyVolumeUSD = ZERO_BD
-    bscswapDayData.usdclyVolumeHT = ZERO_BD
+    bscswapDayData.dailyVolumeUSD = ZERO_BD
+    bscswapDayData.dailyVolumeHT = ZERO_BD
     bscswapDayData.totalVolumeUSD = ZERO_BD
     bscswapDayData.totalVolumeHT = ZERO_BD
-    bscswapDayData.usdclyVolumeUntracked = ZERO_BD
+    bscswapDayData.dailyVolumeUntracked = ZERO_BD
     bscswapDayData.totalLiquidityUSD = ZERO_BD
     bscswapDayData.totalLiquidityHT = ZERO_BD
     bscswapDayData.maxStored = maxTokenDayDatas
@@ -53,17 +53,17 @@ export function updatePairDayData(event: EthereumEvent): PairDayData {
     pairDayData.token0 = pair.token0
     pairDayData.token1 = pair.token1
     pairDayData.pairAddress = event.address
-    pairDayData.usdclyVolumeToken0 = ZERO_BD
-    pairDayData.usdclyVolumeToken1 = ZERO_BD
-    pairDayData.usdclyVolumeUSD = ZERO_BD
-    pairDayData.usdclyTxns = ZERO_BI
+    pairDayData.dailyVolumeToken0 = ZERO_BD
+    pairDayData.dailyVolumeToken1 = ZERO_BD
+    pairDayData.dailyVolumeUSD = ZERO_BD
+    pairDayData.dailyTxns = ZERO_BI
   }
 
   pairDayData.totalSupply = pair.totalSupply
   pairDayData.reserve0 = pair.reserve0
   pairDayData.reserve1 = pair.reserve1
   pairDayData.reserveUSD = pair.reserveUSD
-  pairDayData.usdclyTxns = pairDayData.usdclyTxns.plus(ONE_BI)
+  pairDayData.dailyTxns = pairDayData.dailyTxns.plus(ONE_BI)
   pairDayData.save()
 
   return pairDayData as PairDayData
@@ -114,10 +114,10 @@ export function updateTokenDayData(token: Token, event: EthereumEvent): TokenDay
     tokenDayData.date = dayStartTimestamp
     tokenDayData.token = token.id
     tokenDayData.priceUSD = token.derivedHT.times(bundle.htPrice)
-    tokenDayData.usdclyVolumeToken = ZERO_BD
-    tokenDayData.usdclyVolumeHT = ZERO_BD
-    tokenDayData.usdclyVolumeUSD = ZERO_BD
-    tokenDayData.usdclyTxns = ZERO_BI
+    tokenDayData.dailyVolumeToken = ZERO_BD
+    tokenDayData.dailyVolumeHT = ZERO_BD
+    tokenDayData.dailyVolumeUSD = ZERO_BD
+    tokenDayData.dailyTxns = ZERO_BI
     tokenDayData.totalLiquidityUSD = ZERO_BD
     tokenDayData.maxStored = maxPairDayDatas
     tokenDayData.mostLiquidPairs = token.mostLiquidPairs
@@ -126,7 +126,7 @@ export function updateTokenDayData(token: Token, event: EthereumEvent): TokenDay
   tokenDayData.totalLiquidityToken = token.totalLiquidity
   tokenDayData.totalLiquidityHT = token.totalLiquidity.times(token.derivedHT as BigDecimal)
   tokenDayData.totalLiquidityUSD = tokenDayData.totalLiquidityHT.times(bundle.htPrice)
-  tokenDayData.usdclyTxns = tokenDayData.usdclyTxns.plus(ONE_BI)
+  tokenDayData.dailyTxns = tokenDayData.dailyTxns.plus(ONE_BI)
   tokenDayData.save()
 
   /**

@@ -4,7 +4,7 @@ import { BigInt, BigDecimal, store, Address } from '@graphprotocol/graph-ts'
 import {
   Pair,
   Token,
-  BSCswapFactory,
+  BSCswapHFactory,
   Transaction,
   BSCswapDayData,
   PairDayData,
@@ -39,7 +39,7 @@ export function handleTransfer(event: Transfer): void {
     return
   }
 
-  let factory = BSCswapFactory.load(FACTORY_ADDRESS)
+  let factory = BSCswapHFactory.load(FACTORY_ADDRESS)
   let transactionHash = event.transaction.hash.toHexString()
 
   // user stats
@@ -211,7 +211,7 @@ export function handleSync(event: Sync): void {
   let pair = Pair.load(event.address.toHex())
   let token0 = Token.load(pair.token0)
   let token1 = Token.load(pair.token1)
-  let bscswap = BSCswapFactory.load(FACTORY_ADDRESS)
+  let bscswap = BSCswapHFactory.load(FACTORY_ADDRESS)
 
   // reset factory liquidity by subtracting onluy tarcked liquidity
   bscswap.totalLiquidityHT = bscswap.totalLiquidityHT.minus(pair.trackedReserveHT as BigDecimal)
@@ -282,7 +282,7 @@ export function handleMint(event: Mint): void {
   let mint = MintEvent.load(mints[mints.length - 1])
 
   let pair = Pair.load(event.address.toHex())
-  let bscswap = BSCswapFactory.load(FACTORY_ADDRESS)
+  let bscswap = BSCswapHFactory.load(FACTORY_ADDRESS)
 
   let token0 = Token.load(pair.token0)
   let token1 = Token.load(pair.token1)
@@ -343,7 +343,7 @@ export function handleBurn(event: Burn): void {
   let burn = BurnEvent.load(burns[burns.length - 1])
 
   let pair = Pair.load(event.address.toHex())
-  let bscswap = BSCswapFactory.load(FACTORY_ADDRESS)
+  let bscswap = BSCswapHFactory.load(FACTORY_ADDRESS)
 
   //update token info
   let token0 = Token.load(pair.token0)
@@ -449,7 +449,7 @@ export function handleSwap(event: Swap): void {
   pair.save()
 
   // update global values, only used tracked amounts for volume
-  let bscswap = BSCswapFactory.load(FACTORY_ADDRESS)
+  let bscswap = BSCswapHFactory.load(FACTORY_ADDRESS)
   bscswap.totalVolumeUSD = bscswap.totalVolumeUSD.plus(trackedAmountUSD)
   bscswap.totalVolumeHT = bscswap.totalVolumeHT.plus(trackedAmountHT)
   bscswap.untrackedVolumeUSD = bscswap.untrackedVolumeUSD.plus(derivedAmountUSD)
@@ -508,15 +508,15 @@ export function handleSwap(event: Swap): void {
   let token1DayData = updateTokenDayData(token1 as Token, event)
 
   // swap specific updating
-  bscswapDayData.usdclyVolumeUSD = bscswapDayData.usdclyVolumeUSD.plus(trackedAmountUSD)
-  bscswapDayData.usdclyVolumeHT = bscswapDayData.usdclyVolumeHT.plus(trackedAmountHT)
-  bscswapDayData.usdclyVolumeUntracked = bscswapDayData.usdclyVolumeUntracked.plus(derivedAmountUSD)
+  bscswapDayData.dailyVolumeUSD = bscswapDayData.dailyVolumeUSD.plus(trackedAmountUSD)
+  bscswapDayData.dailyVolumeHT = bscswapDayData.dailyVolumeHT.plus(trackedAmountHT)
+  bscswapDayData.dailyVolumeUntracked = bscswapDayData.dailyVolumeUntracked.plus(derivedAmountUSD)
   bscswapDayData.save()
 
   // swap specific updating for pair
-  pairDayData.usdclyVolumeToken0 = pairDayData.usdclyVolumeToken0.plus(amount0Total)
-  pairDayData.usdclyVolumeToken1 = pairDayData.usdclyVolumeToken1.plus(amount1Total)
-  pairDayData.usdclyVolumeUSD = pairDayData.usdclyVolumeUSD.plus(trackedAmountUSD)
+  pairDayData.dailyVolumeToken0 = pairDayData.dailyVolumeToken0.plus(amount0Total)
+  pairDayData.dailyVolumeToken1 = pairDayData.dailyVolumeToken1.plus(amount1Total)
+  pairDayData.dailyVolumeUSD = pairDayData.dailyVolumeUSD.plus(trackedAmountUSD)
   pairDayData.save()
 
   // update hourly pair data
@@ -526,17 +526,17 @@ export function handleSwap(event: Swap): void {
   pairHourData.save()
 
   // swap specific updating for token0
-  token0DayData.usdclyVolumeToken = token0DayData.usdclyVolumeToken.plus(amount0Total)
-  token0DayData.usdclyVolumeHT = token0DayData.usdclyVolumeHT.plus(amount0Total.times(token1.derivedHT as BigDecimal))
-  token0DayData.usdclyVolumeUSD = token0DayData.usdclyVolumeUSD.plus(
+  token0DayData.dailyVolumeToken = token0DayData.dailyVolumeToken.plus(amount0Total)
+  token0DayData.dailyVolumeHT = token0DayData.dailyVolumeHT.plus(amount0Total.times(token1.derivedHT as BigDecimal))
+  token0DayData.dailyVolumeUSD = token0DayData.dailyVolumeUSD.plus(
     amount0Total.times(token0.derivedHT as BigDecimal).times(bundle.htPrice)
   )
   token0DayData.save()
 
   // swap specific updating
-  token1DayData.usdclyVolumeToken = token1DayData.usdclyVolumeToken.plus(amount1Total)
-  token1DayData.usdclyVolumeHT = token1DayData.usdclyVolumeHT.plus(amount1Total.times(token1.derivedHT as BigDecimal))
-  token1DayData.usdclyVolumeUSD = token1DayData.usdclyVolumeUSD.plus(
+  token1DayData.dailyVolumeToken = token1DayData.dailyVolumeToken.plus(amount1Total)
+  token1DayData.dailyVolumeHT = token1DayData.dailyVolumeHT.plus(amount1Total.times(token1.derivedHT as BigDecimal))
+  token1DayData.dailyVolumeUSD = token1DayData.dailyVolumeUSD.plus(
     amount1Total.times(token1.derivedHT as BigDecimal).times(bundle.htPrice)
   )
   token1DayData.save()

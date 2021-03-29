@@ -1,6 +1,6 @@
 /* eslint-disable prefer-const */
 import { log } from '@graphprotocol/graph-ts'
-import { BSCswapFactory, Pair, Token, Bundle } from '../types/schema'
+import { BSCswapHFactory, Pair, Token, Bundle } from '../types/schema'
 import { PairCreated } from '../types/Factory/Factory'
 import { Pair as PairTemplate } from '../types/templates'
 import {
@@ -15,9 +15,9 @@ import {
 
 export function handleNewPair(event: PairCreated): void {
   // load factory (create if first exchange)
-  let factory = BSCswapFactory.load(FACTORY_ADDRESS)
+  let factory = BSCswapHFactory.load(FACTORY_ADDRESS)
   if (factory == null) {
-    factory = new BSCswapFactory(FACTORY_ADDRESS)
+    factory = new BSCswapHFactory(FACTORY_ADDRESS)
     factory.pairCount = 0
     factory.totalVolumeHT = ZERO_BD
     factory.totalLiquidityHT = ZERO_BD
