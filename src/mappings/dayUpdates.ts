@@ -1,6 +1,6 @@
 import { PairHourData } from './../types/schema'
 /* eslint-disable prefer-const */
-import { BigInt, BigDecimal, EthereumEvent } from '@graphprotocol/graph-ts'
+import { BigInt, BigDecimal, ethereum } from '@graphprotocol/graph-ts'
 import { Pair, Bundle, Token, BSCswapFactory, BSCswapDayData, PairDayData, TokenDayData } from '../types/schema'
 import { ONE_BI, ZERO_BD, ZERO_BI, FACTORY_ADDRESS } from './helpers'
 
@@ -8,8 +8,8 @@ import { ONE_BI, ZERO_BD, ZERO_BI, FACTORY_ADDRESS } from './helpers'
 const maxTokenDayDatas = 10
 const maxPairDayDatas = 10
 
-export function updateBSCswapDayData(event: EthereumEvent):BSCswapDayData {
-  let bscswap = BSCswapFactory.load(FACTORY_ADDRESS)
+export function updateBSCswapDayData(event: ethereum.Event): BSCswapDayData {
+  let bscswap = BSCswapFactory.load(FACTORY_ADDRESS) as BSCswapFactory
   let timestamp = event.block.timestamp.toI32()
   let dayID = timestamp / 86400
   let dayStartTimestamp = dayID * 86400
@@ -29,7 +29,7 @@ export function updateBSCswapDayData(event: EthereumEvent):BSCswapDayData {
     bscswapDayData.txCount = ZERO_BI
     bscswapDayData.save()
   }
-  bscswapDayData = BSCswapDayData.load(dayID.toString())
+  bscswapDayData = BSCswapDayData.load(dayID.toString()) as BSCswapDayData
   bscswapDayData.totalLiquidityUSD = bscswap.totalLiquidityUSD
   bscswapDayData.totalLiquidityBNB = bscswap.totalLiquidityBNB
   bscswapDayData.txCount = bscswap.txCount
@@ -37,7 +37,7 @@ export function updateBSCswapDayData(event: EthereumEvent):BSCswapDayData {
   return bscswapDayData as BSCswapDayData
 }
 
-export function updatePairDayData(event: EthereumEvent): PairDayData {
+export function updatePairDayData(event: ethereum.Event): PairDayData {
   let timestamp = event.block.timestamp.toI32()
   let dayID = timestamp / 86400
   let dayStartTimestamp = dayID * 86400
@@ -45,7 +45,7 @@ export function updatePairDayData(event: EthereumEvent): PairDayData {
     .toHexString()
     .concat('-')
     .concat(BigInt.fromI32(dayID).toString())
-  let pair = Pair.load(event.address.toHexString())
+  let pair = Pair.load(event.address.toHexString()) as Pair
   let pairDayData = PairDayData.load(dayPairID)
   if (pairDayData === null) {
     pairDayData = new PairDayData(dayPairID)
@@ -69,7 +69,7 @@ export function updatePairDayData(event: EthereumEvent): PairDayData {
   return pairDayData as PairDayData
 }
 
-export function updatePairHourData(event: EthereumEvent): PairHourData {
+export function updatePairHourData(event: ethereum.Event): PairHourData {
   let timestamp = event.block.timestamp.toI32()
   let hourIndex = timestamp / 3600 // get unique hour within unix history
   let hourStartUnix = hourIndex * 3600 // want the rounded effect
@@ -77,7 +77,7 @@ export function updatePairHourData(event: EthereumEvent): PairHourData {
     .toHexString()
     .concat('-')
     .concat(BigInt.fromI32(hourIndex).toString())
-  let pair = Pair.load(event.address.toHexString())
+  let pair = Pair.load(event.address.toHexString()) as Pair
   let pairHourData = PairHourData.load(hourPairID)
   if (pairHourData === null) {
     pairHourData = new PairHourData(hourPairID)
@@ -98,8 +98,8 @@ export function updatePairHourData(event: EthereumEvent): PairHourData {
   return pairHourData as PairHourData
 }
 
-export function updateTokenDayData(token: Token, event: EthereumEvent): TokenDayData {
-  let bundle = Bundle.load('1')
+export function updateTokenDayData(token: Token, event: ethereum.Event): TokenDayData {
+  let bundle = Bundle.load('1') as Bundle
   let timestamp = event.block.timestamp.toI32()
   let dayID = timestamp / 86400
   let dayStartTimestamp = dayID * 86400
@@ -113,7 +113,8 @@ export function updateTokenDayData(token: Token, event: EthereumEvent): TokenDay
     tokenDayData = new TokenDayData(tokenDayID)
     tokenDayData.date = dayStartTimestamp
     tokenDayData.token = token.id
-    tokenDayData.priceUSD = token.derivedBNB.times(bundle.bnbPrice)
+    tokenDayData.priceUSD = (token.derivedBNB as BigDecimal).times(bundle.bnbPrice)
+
     tokenDayData.dailyVolumeToken = ZERO_BD
     tokenDayData.dailyVolumeBNB = ZERO_BD
     tokenDayData.dailyVolumeUSD = ZERO_BD
@@ -122,7 +123,7 @@ export function updateTokenDayData(token: Token, event: EthereumEvent): TokenDay
     tokenDayData.maxStored = maxPairDayDatas
     tokenDayData.mostLiquidPairs = token.mostLiquidPairs
   }
-  tokenDayData.priceUSD = token.derivedBNB.times(bundle.bnbPrice)
+  tokenDayData.priceUSD = (token.derivedBNB as BigDecimal).times(bundle.bnbPrice)
   tokenDayData.totalLiquidityToken = token.totalLiquidity
   tokenDayData.totalLiquidityBNB = token.totalLiquidity.times(token.derivedBNB as BigDecimal)
   tokenDayData.totalLiquidityUSD = tokenDayData.totalLiquidityBNB.times(bundle.bnbPrice)

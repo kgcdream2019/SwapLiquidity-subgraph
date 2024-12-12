@@ -54,9 +54,7 @@ let WHITELIST: string[] = [
   '0x7083609fce4d1d8dc0c979aab8c869ea2c873402', //DOT
   '0x3f515f0a8e93f2e2f891ceeb3db4e62e202d7110', //VIDT
   '0x4b0f1812e5df2a09796481ff14017e6005508003', //TWT
-  '0xc1d99537392084cc02d3f52386729b79d01035ce'  //SBS
-
-
+  '0xc1d99537392084cc02d3f52386729b79d01035ce' //SBS
 ]
 // minimum liquidity required to count towards tracked volume for pairs with small # of Lps
 let MINIMUM_USD_THRESHOLD_NEW_PAIRS = BigDecimal.fromString('400000')
@@ -76,12 +74,13 @@ export function findBnbPerToken(token: Token): BigDecimal {
     let pairAddress = factoryContract.getPair(Address.fromString(token.id), Address.fromString(WHITELIST[i]))
     if (pairAddress.toHexString() != ADDRESS_ZERO) {
       let pair = Pair.load(pairAddress.toHexString())
+      if (!pair) continue
       if (pair.token0 == token.id && pair.reserveBNB.gt(MINIMUM_LIQUIDITY_THRESHOLD_BNB)) {
-        let token1 = Token.load(pair.token1)
+        let token1 = Token.load(pair.token1) as Token
         return pair.token1Price.times(token1.derivedBNB as BigDecimal) // return token1 per our token * BNB per token 1
       }
       if (pair.token1 == token.id && pair.reserveBNB.gt(MINIMUM_LIQUIDITY_THRESHOLD_BNB)) {
-        let token0 = Token.load(pair.token0)
+        let token0 = Token.load(pair.token0) as Token
         return pair.token0Price.times(token0.derivedBNB as BigDecimal) // return token0 per our token * BNB per token 0
       }
     }
@@ -102,9 +101,9 @@ export function getTrackedVolumeUSD(
   token1: Token,
   pair: Pair
 ): BigDecimal {
-  let bundle = Bundle.load('1')
-  let price0 = token0.derivedBNB.times(bundle.bnbPrice)
-  let price1 = token1.derivedBNB.times(bundle.bnbPrice)
+  let bundle = Bundle.load('1') as Bundle
+  let price0 = (token0.derivedBNB as BigDecimal).times(bundle.bnbPrice)
+  let price1 = (token1.derivedBNB as BigDecimal).times(bundle.bnbPrice)
 
   // if less than 5 LPs, require high minimum reserve amount amount or return 0
   if (pair.liquidityProviderCount.lt(BigInt.fromI32(5))) {
@@ -161,9 +160,9 @@ export function getTrackedLiquidityUSD(
   tokenAmount1: BigDecimal,
   token1: Token
 ): BigDecimal {
-  let bundle = Bundle.load('1')
-  let price0 = token0.derivedBNB.times(bundle.bnbPrice)
-  let price1 = token1.derivedBNB.times(bundle.bnbPrice)
+  let bundle = Bundle.load('1') as Bundle
+  let price0 = (token0.derivedBNB as BigDecimal).times(bundle.bnbPrice)
+  let price1 = (token1.derivedBNB as BigDecimal).times(bundle.bnbPrice)
 
   // both are whitelist tokens, take average of both amounts
   if (WHITELIST.includes(token0.id) && WHITELIST.includes(token1.id)) {

@@ -55,3 +55,12 @@ This query fetches aggredated data from all bscswap pairs and tokens, to give a 
   }
 }
 ```
+
+1. steps
+   1. node 16.16.0
+   2. yarn codegen
+   3. yarn build
+   4. yarn auth
+   5. yarn deploy-live
+
+https://api.thegraph.com/subgraphs/name/kgcdream2019/subgraph

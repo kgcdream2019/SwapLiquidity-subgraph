@@ -1,6 +1,6 @@
 import { PairHourData } from './../types/schema'
 /* eslint-disable prefer-const */
-import { BigInt, BigDecimal, store, Address } from '@graphprotocol/graph-ts'
+import { BigInt, BigDecimal, store, Address, log, Bytes } from '@graphprotocol/graph-ts'
 import {
   Pair,
   Token,
@@ -30,7 +30,8 @@ import {
 } from './helpers'
 
 function isCompleteMint(mintId: string): boolean {
-  return MintEvent.load(mintId).sender !== null // sufficient checks
+  let mint = MintEvent.load(mintId) as MintEvent
+  return mint.sender !== null // sufficient checks
 }
 
 export function handleTransfer(event: Transfer): void {
@@ -39,7 +40,7 @@ export function handleTransfer(event: Transfer): void {
     return
   }
 
-  let factory = BSCswapFactory.load(FACTORY_ADDRESS)
+  let factory = BSCswapFactory.load(FACTORY_ADDRESS) as BSCswapFactory
   let transactionHash = event.transaction.hash.toHexString()
 
   // user stats
@@ -48,8 +49,8 @@ export function handleTransfer(event: Transfer): void {
   let to = event.params.to
   createUser(to)
 
-  let pair = Pair.load(event.address.toHexString())
-  let pairContract = PairContract.bind(event.address)
+  let pair = Pair.load(event.address.toHexString()) as Pair
+  // let pairContract = PairContract.bind(event.address)
 
   // liquidity token amount being transfered
   let value = convertTokenToDecimal(event.params.value, BI_18)
@@ -131,7 +132,7 @@ export function handleTransfer(event: Transfer): void {
     let burns = transaction.burns
     let burn: BurnEvent
     if (burns.length > 0) {
-      let currentBurn = BurnEvent.load(burns[burns.length - 1])
+      let currentBurn = BurnEvent.load(burns[burns.length - 1]) as BurnEvent
       if (currentBurn.needsComplete) {
         burn = currentBurn as BurnEvent
       } else {
@@ -165,7 +166,7 @@ export function handleTransfer(event: Transfer): void {
 
     // if this logical burn included a fee mint, account for this
     if (mints.length !== 0 && !isCompleteMint(mints[mints.length - 1])) {
-      let mint = MintEvent.load(mints[mints.length - 1])
+      let mint = MintEvent.load(mints[mints.length - 1]) as MintEvent
       burn.feeTo = mint.to
       burn.feeLiquidity = mint.liquidity
       // remove the logical mint
@@ -192,7 +193,7 @@ export function handleTransfer(event: Transfer): void {
     let fromUserLiquidityPosition = createLiquidityPosition(event.address, from)
     fromUserLiquidityPosition.liquidityTokenBalance = fromUserLiquidityPosition.liquidityTokenBalance.minus(value)
     fromUserLiquidityPosition.save()
-    if (event.params.to.toHexString() != ADDRESS_ZERO && to.toHexString() != pair.id) 
+    if (event.params.to.toHexString() != ADDRESS_ZERO && to.toHexString() != pair.id)
       createLiquiditySnapshot(fromUserLiquidityPosition, event)
   }
 
@@ -208,10 +209,10 @@ export function handleTransfer(event: Transfer): void {
 }
 
 export function handleSync(event: Sync): void {
-  let pair = Pair.load(event.address.toHex())
-  let token0 = Token.load(pair.token0)
-  let token1 = Token.load(pair.token1)
-  let bscswap = BSCswapFactory.load(FACTORY_ADDRESS)
+  let pair = Pair.load(event.address.toHex()) as Pair
+  let token0 = Token.load(pair.token0) as Token
+  let token1 = Token.load(pair.token1) as Token
+  let bscswap = BSCswapFactory.load(FACTORY_ADDRESS) as BSCswapFactory
 
   // reset factory liquidity by subtracting onluy tarcked liquidity
   bscswap.totalLiquidityBNB = bscswap.totalLiquidityBNB.minus(pair.trackedReserveBNB as BigDecimal)
@@ -223,19 +224,15 @@ export function handleSync(event: Sync): void {
   pair.reserve0 = convertTokenToDecimal(event.params.reserve0, token0.decimals)
   pair.reserve1 = convertTokenToDecimal(event.params.reserve1, token1.decimals)
 
-  if (pair.reserve1.notEqual(ZERO_BD))
-    pair.token0Price = pair.reserve0.div(pair.reserve1)
-  else
-    pair.token0Price = ZERO_BD
-  if (pair.reserve0.notEqual(ZERO_BD))
-    pair.token1Price = pair.reserve1.div(pair.reserve0)
-  else
-    pair.token1Price = ZERO_BD
+  if (pair.reserve1.notEqual(ZERO_BD)) pair.token0Price = pair.reserve0.div(pair.reserve1)
+  else pair.token0Price = ZERO_BD
+  if (pair.reserve0.notEqual(ZERO_BD)) pair.token1Price = pair.reserve1.div(pair.reserve0)
+  else pair.token1Price = ZERO_BD
 
   pair.save()
 
   // update BNB price now that reserves could have changed
-  let bundle = Bundle.load('1')
+  let bundle = Bundle.load('1') as Bundle
   bundle.bnbPrice = getBnbPriceInUSD()
   bundle.save()
 
@@ -277,16 +274,14 @@ export function handleSync(event: Sync): void {
 }
 
 export function handleMint(event: Mint): void {
-  let transaction = Transaction.load(event.transaction.hash.toHexString())
+  let transaction = Transaction.load(event.transaction.hash.toHexString()) as Transaction
   let mints = transaction.mints
-  let mint = MintEvent.load(mints[mints.length - 1])
-
-  let pair = Pair.load(event.address.toHex())
-  let bscswap = BSCswapFactory.load(FACTORY_ADDRESS)
-
-  let token0 = Token.load(pair.token0)
-  let token1 = Token.load(pair.token1)
-
+  let mint = MintEvent.load(mints[mints.length - 1]) as MintEvent
+  // log.debug('mint.to = ' + mint.to.toHexString(), [])
+  let pair = Pair.load(event.address.toHex()) as Pair
+  let bscswap = BSCswapFactory.load(FACTORY_ADDRESS) as BSCswapFactory
+  let token0 = Token.load(pair.token0) as Token
+  let token1 = Token.load(pair.token1) as Token
   // update exchange info (except balances, sync will cover that)
   let token0Amount = convertTokenToDecimal(event.params.amount0, token0.decimals)
   let token1Amount = convertTokenToDecimal(event.params.amount1, token1.decimals)
@@ -296,12 +291,11 @@ export function handleMint(event: Mint): void {
   token1.txCount = token1.txCount.plus(ONE_BI)
 
   // get new amounts of USD and Bnb for tracking
-  let bundle = Bundle.load('1')
-  let amountTotalUSD = token1.derivedBNB
+  let bundle = Bundle.load('1') as Bundle
+  let amountTotalUSD = (token1.derivedBNB as BigDecimal)
     .times(token1Amount)
-    .plus(token0.derivedBNB.times(token0Amount))
+    .plus((token0.derivedBNB as BigDecimal).times(token0Amount))
     .times(bundle.bnbPrice)
-
   // update txn counts
   pair.txCount = pair.txCount.plus(ONE_BI)
   bscswap.txCount = bscswap.txCount.plus(ONE_BI)
@@ -320,7 +314,7 @@ export function handleMint(event: Mint): void {
   mint.save()
 
   // update the LP position
-  let liquidityPosition = createLiquidityPosition(event.address, mint.to as Address)
+  let liquidityPosition = createLiquidityPosition(event.address, Address.fromBytes(mint.to))
   createLiquiditySnapshot(liquidityPosition, event)
 
   // update day entities
@@ -340,14 +334,13 @@ export function handleBurn(event: Burn): void {
   }
 
   let burns = transaction.burns
-  let burn = BurnEvent.load(burns[burns.length - 1])
+  let burn = BurnEvent.load(burns[burns.length - 1]) as BurnEvent
 
-  let pair = Pair.load(event.address.toHex())
-  let bscswap = BSCswapFactory.load(FACTORY_ADDRESS)
-
+  let pair = Pair.load(event.address.toHex()) as Pair
+  let bscswap = BSCswapFactory.load(FACTORY_ADDRESS) as BSCswapFactory
   //update token info
-  let token0 = Token.load(pair.token0)
-  let token1 = Token.load(pair.token1)
+  let token0 = Token.load(pair.token0) as Token
+  let token1 = Token.load(pair.token1) as Token
   let token0Amount = convertTokenToDecimal(event.params.amount0, token0.decimals)
   let token1Amount = convertTokenToDecimal(event.params.amount1, token1.decimals)
 
@@ -356,12 +349,11 @@ export function handleBurn(event: Burn): void {
   token1.txCount = token1.txCount.plus(ONE_BI)
 
   // get new amounts of USD and Bnb for tracking
-  let bundle = Bundle.load('1')
-  let amountTotalUSD = token1.derivedBNB
+  let bundle = Bundle.load('1') as Bundle
+  let amountTotalUSD = (token1.derivedBNB as BigDecimal)
     .times(token1Amount)
-    .plus(token0.derivedBNB.times(token0Amount))
+    .plus((token0.derivedBNB as BigDecimal).times(token0Amount))
     .times(bundle.bnbPrice)
-
   // update txn counts
   bscswap.txCount = bscswap.txCount.plus(ONE_BI)
   pair.txCount = pair.txCount.plus(ONE_BI)
@@ -373,16 +365,15 @@ export function handleBurn(event: Burn): void {
   bscswap.save()
 
   // update burn
-  // burn.sender = event.params.sender
+  burn.sender = event.params.sender
   burn.amount0 = token0Amount as BigDecimal
   burn.amount1 = token1Amount as BigDecimal
-  // burn.to = event.params.to
+  burn.to = event.params.to
   burn.logIndex = event.logIndex
   burn.amountUSD = amountTotalUSD as BigDecimal
   burn.save()
-
   // update the LP position
-  let liquidityPosition = createLiquidityPosition(event.address, burn.sender as Address)
+  let liquidityPosition = createLiquidityPosition(event.address, Address.fromBytes(burn.sender as Bytes))
   createLiquiditySnapshot(liquidityPosition, event)
 
   // update day entities
@@ -394,9 +385,9 @@ export function handleBurn(event: Burn): void {
 }
 
 export function handleSwap(event: Swap): void {
-  let pair = Pair.load(event.address.toHexString())
-  let token0 = Token.load(pair.token0)
-  let token1 = Token.load(pair.token1)
+  let pair = Pair.load(event.address.toHexString()) as Pair
+  let token0 = Token.load(pair.token0) as Token
+  let token1 = Token.load(pair.token1) as Token
   let amount0In = convertTokenToDecimal(event.params.amount0In, token0.decimals)
   let amount1In = convertTokenToDecimal(event.params.amount1In, token1.decimals)
   let amount0Out = convertTokenToDecimal(event.params.amount0Out, token0.decimals)
@@ -407,13 +398,14 @@ export function handleSwap(event: Swap): void {
   let amount1Total = amount1Out.plus(amount1In)
 
   // Bnb/USD prices
-  let bundle = Bundle.load('1')
+  let bundle = Bundle.load('1') as Bundle
 
   // get total amounts of derived USD and Bnb for tracking
-  let derivedAmountBNB = token1.derivedBNB
+  let derivedAmountBNB = (token1.derivedBNB as BigDecimal)
     .times(amount1Total)
-    .plus(token0.derivedBNB.times(amount0Total))
+    .plus((token0.derivedBNB as BigDecimal).times(amount0Total))
     .div(BigDecimal.fromString('2'))
+
   let derivedAmountUSD = derivedAmountBNB.times(bundle.bnbPrice)
 
   // only accounts for volume through white listed tokens
@@ -449,7 +441,7 @@ export function handleSwap(event: Swap): void {
   pair.save()
 
   // update global values, only used tracked amounts for volume
-  let bscswap = BSCswapFactory.load(FACTORY_ADDRESS)
+  let bscswap = BSCswapFactory.load(FACTORY_ADDRESS) as BSCswapFactory
   bscswap.totalVolumeUSD = bscswap.totalVolumeUSD.plus(trackedAmountUSD)
   bscswap.totalVolumeBNB = bscswap.totalVolumeBNB.plus(trackedAmountBNB)
   bscswap.untrackedVolumeUSD = bscswap.untrackedVolumeUSD.plus(derivedAmountUSD)
@@ -506,7 +498,6 @@ export function handleSwap(event: Swap): void {
   let bscswapDayData = updateBSCswapDayData(event)
   let token0DayData = updateTokenDayData(token0 as Token, event)
   let token1DayData = updateTokenDayData(token1 as Token, event)
-
   // swap specific updating
   bscswapDayData.dailyVolumeUSD = bscswapDayData.dailyVolumeUSD.plus(trackedAmountUSD)
   bscswapDayData.dailyVolumeBNB = bscswapDayData.dailyVolumeBNB.plus(trackedAmountBNB)
